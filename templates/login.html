@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block path %}login{% endblock %}
+{% block body %}
+    <style>
+	form {
+	    border: 1px solid grey;
+	    padding: 5px;
+	    margin: 10px;
+	    font-size: 20px;
+	}
+	form > * {
+	    display: block;
+	}
+    </style>
+    <form action="/login" method="post">
+	<label for="user">Username:</label>
+        <input id="user" name="user"/>
+	<label for="pass">Password:</label>
+        <input id="pass" name="pass"/>
+	<input type="submit" value="Log in"/>
+    </form>
+{% endblock %}
