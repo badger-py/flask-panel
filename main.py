@@ -26,8 +26,15 @@ def login():
     else:
         user = controller.login_user(request.form.get('user'), request.form.get('pass'))
         login_user(user)
-        return redirect('/')#url_for('index'))
+        return redirect(url_for('index'))
 
+@app.errorhandler(404)
+def on_404(e):
+    return render_template('404.html')
+
+@app.errorhandler(401)
+def on_401(e):
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run()
