@@ -86,11 +86,11 @@ class User:
     def get_user(self):
         return str(self.id)
 
-class sql_tables:
-    def _get_database(self):
-        self.connection = sqlite3.connect('users.sqlite')
-        self.cursor = self.connection.cursor()
+class sql_connector:
+    def __init__(self, filename:str, connection:callable, execute_sql:callable, close_connectoin:callable, get_tables:callable):
+        self.filename = filename
+        self.connection = connection
+        self.execute_sql = execute_sql
+        self.close_connectoin = close_connectoin
+        self.get_tables = get_tables
     
-    def _close_database(self):
-        self.cursor.close()
-        self.connection.close()
