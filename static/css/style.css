@@ -1,5 +1,5 @@
 @font-face {
-    font-family: Monofur;
+    font-family: monofur;
     src: url("/static/assets/monofur.ttf");
 }
 
@@ -14,7 +14,7 @@ body {
 
 .toolbar {
     box-shadow: 0 0 5px #0006;
-    font-family: Monofur;
+    font-family: monofur;
     font-size: 25px;
     padding: 10px;
 }

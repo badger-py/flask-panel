@@ -1,0 +1,128 @@
+@font-face{
+    font-family: monofur;
+    src: url("/static/assets/monofur.ttf");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("/static/assets/bg.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    transition: height 0.3s;
+}
+form {
+    border: 0px solid grey;
+    border-radius: 10px;
+    padding: 15px;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    font-size: 20px;
+    max-width: 700px;
+    width: 700px;
+    backdrop-filter: blur(10px);
+    color: white;
+    box-shadow: 0 5px 40px #0003;
+    padding: 100px 150px;
+}
+form > * {
+    display: block;
+    width: 100%;
+    color: white;
+    margin-top: 20px;
+    font-family: monofur;
+}
+form > :not(:first-child) {
+    margin-top: 10px;
+}
+form > input:not([type="submit"]) {
+    background-color: #0000;
+    border: 0px;
+    border-bottom: 1px solid #fff9;
+    padding: 5px;
+    font-size: 20px;
+
+}
+form p {
+    padding: 10px;
+}
+
+form #user {
+    position: relative;
+    
+}
+form #user::before {
+    content: "Username";
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+form > input[type="submit"] {
+    background-color: #fff5;
+    border: 0;
+    padding: 7px;
+    border-radius: 5px;
+    font-size: 20px;
+}
+
+form > header {
+    text-align: center;
+    font-size: 30px;
+    padding-bottom: 30px;
+}
+@media(max-width: 700px){
+    form {
+	width: calc(100% - 20px);
+	padding: 30px 10px;
+    }
+    form > * {
+	width: calc(100% - 10px);
+    }
+    form [type="submit"] {
+	width: 100%;
+    }
+}
+:focus {
+    outline: 0;
+}
+.input {
+    position: relative;
+}
+.input .input__value {
+    border: 0px solid white;
+    border-bottom: 1px solid #fff5;
+    background-color: transparent;
+    color: inherit;
+    display: block;
+    width: 100%;
+    margin: 0;
+    font-size: 20px;
+    padding: 8px;
+    font-family: inherit;
+}
+
+.input .input__value + .input__placeholder {
+  position: absolute;
+  left: 0px;
+  top: -5px;
+  transform: translate(10px, 18px);
+  font-size: 20px;
+  transition: all 0.2s;
+}
+.input .input__value:focus + .input__placeholder {
+    transform: translate(0,0);
+    font-size: 13px;
+}
