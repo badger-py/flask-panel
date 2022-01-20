@@ -4,6 +4,11 @@
 	<title>{% block title %}{% endblock %}</title>
 	<meta name="viewport" content="width=device-width"/>
 	<link rel="stylesheet" href="/static/css/style.css"/>
+	<script>
+	    window.onerror = e =>{
+		alert(e)
+	    }
+	</script>
 	<script type="module" src="/static/js/{% block path %}{% endblock %}.js"></script>
     </head>
     <body>
