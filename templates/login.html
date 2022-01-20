@@ -20,4 +20,7 @@
         <input id="pass" name="pass"/>
 	<input type="submit" value="Log in"/>
     </form>
+	{% for message in get_flashed_messages() %}
+	<script>alert({{message}})</script>
+	{% endfor %}
 {% endblock %}

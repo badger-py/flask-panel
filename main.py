@@ -1,4 +1,4 @@
-from flask import Flask, render_template ,request, redirect, url_for
+from flask import Flask, render_template ,request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required
 from panel import *
 
@@ -25,6 +25,9 @@ def login():
         return render_template('login.html')
     else:
         user = controller.login_user(request.form.get('user'), request.form.get('pass'))
+        if not user:
+            flash("You type don't correct password")
+            return redirect(url_for('login'))
         login_user(user)
         return redirect(url_for('index'))
 
