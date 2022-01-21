@@ -126,3 +126,8 @@ form > header {
     transform: translate(0,0);
     font-size: 13px;
 }
+
+.input .input__value:not([value=""]) + .input__placeholder {
+    transform: translate(0,0);
+    font-size: 13px;
+}
