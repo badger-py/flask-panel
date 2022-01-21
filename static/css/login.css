@@ -114,6 +114,10 @@ form > header {
     font-family: inherit;
 }
 
+.input .input__value::placeholder {
+    color: transparent;
+}
+
 .input .input__value + .input__placeholder {
   position: absolute;
   left: 0px;
@@ -127,7 +131,7 @@ form > header {
     font-size: 13px;
 }
 
-.input .input__value:not([value=""]) + .input__placeholder {
+.input .input__value:not(:placeholder-shown) + .input__placeholder {
     transform: translate(0,0);
     font-size: 13px;
 }
