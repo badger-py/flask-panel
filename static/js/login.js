@@ -5,16 +5,18 @@ window.onload = e => {
         let xhr = new XMLHttpRequest();
         xhr.onload = ()=>{
             alert(`${xhr.status} ${xhr.statusText}`);
+            console.log(xhr)
         };
         xhr.onerror = () => {
-            alert(`${xhr.status} ${xhr.statusText}`);
+            
         };
         xhr.open("POST","/login",true);
         xhr.setRequestHeader("Content-Type", "application/json");
         
         xhr.send(JSON.stringify({
             user:form.elements["user"].value,
-            pass:form["pass"].value
+            pass:form["pass"].value,
+            remember:form["remember"].checked
         }));
     },true)
 }

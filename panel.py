@@ -33,7 +33,7 @@ class UsersController:
     # @use_db
     def login_user(self, login, password):
         self._get_database()
-        self.cursor.execute('SELECT * FROM users WHERE username=?', (login,))
+        self.cursor.execute('SELECT * FROM users WHERE username="%s"' % login)
         user = self.cursor.fetchone()
         if not user:
             self._close_database()

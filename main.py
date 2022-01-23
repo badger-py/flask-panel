@@ -38,14 +38,29 @@ def login():
     if request.method == "GET":
         return render_template('login.html.jinja')
     else:
-        user = controller.login_user(request.form.get('user'), request.form.get('pass'))
+        remember = False
+        user = {
+            "login":None,
+            "password":None,
+        }
+        if request.content_type == "application/json":
+            user["login"] = request.json["user"]
+            user["password"] = request.json["pass"]
+            remember = request.json["remember"]
+        else:
+            user["login"] = request.form["user"]
+            user["password"] = request.form["pass"]
+            remember = request.form["remember"]
+        user = controller.login_user(user["login"], user['password'])
         if not user:
             if request.content_type == "application/json":
-                return make_response(jsonify({"error": "Invalid username or password"}))
+                return make_response(jsonify({"error": "Invalid username or password"}),400)
             else:
                 flash("You type don't correct password")
                 return redirect(url_for('login'))
-        login_user(user)
+        login_user(user,remember=remember)
+        if request.content_type == "application/json":
+            return make_response(jsonify({"status":"ok"}),200)
         return redirect(url_for('index'))
 
 @app.errorhandler(404)
