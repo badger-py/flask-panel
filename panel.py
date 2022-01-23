@@ -1,6 +1,9 @@
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
+class BadConnector(Exception):
+    pass
+
 
 class UsersController:
     def __init__(self):
@@ -86,11 +89,11 @@ class User:
     def get_user(self):
         return str(self.id)
 
-class sql_connector:
-    def __init__(self, filename:str, connection:callable, execute_sql:callable, close_connectoin:callable, get_tables:callable):
-        self.filename = filename
-        self.connection = connection
-        self.execute_sql = execute_sql
-        self.close_connectoin = close_connectoin
-        self.get_tables = get_tables
-    
+class SQLTables:
+    def __init__(self, connector):
+        self.connector = connector()
+        connector = dir(self.connector)
+        for i in ['open_connection', 'execute_sql', 'close_connectoin', 'get_tables']:
+            if i not in connector:
+                raise BadConnector(f'Connector need to has function {i}')
+
