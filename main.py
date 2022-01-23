@@ -12,9 +12,11 @@ login_manager = LoginManager(app)
 
 controller = UsersController()
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return controller.get_user(user_id)
+
 
 @app.after_request
 def add_header(r):
@@ -44,12 +46,12 @@ def login():
             "password":None,
         }
         if request.content_type == "application/json":
-            user["login"] = request.json["user"]
-            user["password"] = request.json["pass"]
-            remember = request.json["remember"]
+            user["login"] = request.json.get("user")
+            user["password"] = request.json.get("pass")
+            remember = request.json.get("remember")
         else:
-            user["login"] = request.form["user"]
-            user["password"] = request.form["pass"]
+            user["login"] = request.form.get("user")
+            user["password"] = request.form.get("pass")
             remember = request.form["remember"]
         user = controller.login_user(user["login"], user['password'])
         if not user:
