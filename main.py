@@ -1,4 +1,4 @@
-from flask import Flask, render_template ,request, redirect, url_for, flash
+from flask import Flask, render_template ,request, redirect, url_for, flash, make_response, jsonify
 from flask_login import LoginManager, login_user, login_required
 from panel import *
 
@@ -31,23 +31,26 @@ def add_header(r):
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    return render_template('index.html.jinja')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == "GET":
-        return render_template('login.html')
+        return render_template('login.html.jinja')
     else:
         user = controller.login_user(request.form.get('user'), request.form.get('pass'))
         if not user:
-            flash("You type don't correct password")
-            return redirect(url_for('login'))
+            if request.content_type == "application/json":
+                return make_response(jsonify({"error": "Invalid username or password"}))
+            else:
+                flash("You type don't correct password")
+                return redirect(url_for('login'))
         login_user(user)
         return redirect(url_for('index'))
 
 @app.errorhandler(404)
 def on_404(e):
-    return render_template('404.html')
+    return render_template('404.html.jinja')
 
 @app.errorhandler(401)
 def on_401(e):

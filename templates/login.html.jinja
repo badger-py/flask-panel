@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html.jinja" %}
 {% block title %}Login{% endblock %}
 {% block style %}login{% endblock %}
 {% block path %}login{% endblock %}
@@ -19,6 +19,6 @@
     </form>
 </div>
 	{% for message in get_flashed_messages() %}
-	<script>alert({{message}})</script>
+	<script>alert("{{message}}")</script>
 	{% endfor %}
 {% endblock %}
