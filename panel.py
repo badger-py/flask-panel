@@ -91,9 +91,26 @@ class User:
 
 class SQLTables:
     def __init__(self, connector):
-        self.connector = connector()
+        self.connector = connector
         connector = dir(self.connector)
         for i in ['open_connection', 'execute_sql', 'close_connectoin', 'get_tables']:
             if i not in connector:
                 raise BadConnector(f'Connector need to has function {i}')
+    def get_tables(self):
+        self.connector.open_connection()
+        data = self.connector.get_tables()
+        self.connector.close_connectoin()
+        if not data:
+            raise BadConnector('Tables list can not be empty')
+        return data
+    def get_data_from_table(self, table_name, limit):
+        self.connector.open_connection()
+        data = self.connector.execute_sql('SELECT * FROM ? WHERE limit=?', (table_name, limit))
+        self.close_connectoin()
+        return data
 
+
+if __name__ == '__main__':
+    from sqlite_db_connector import Connector
+    obj = SQLTables(Connector('/home/yan/Desktop/test_database.db'))
+    print(obj.get_tables())

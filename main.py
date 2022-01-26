@@ -1,16 +1,21 @@
 from flask import Flask, render_template ,request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required
 from panel import *
+from sqlite_db_connector import Connector
 
 
 app = Flask(__name__)
 app.secret_key = 'dev'
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+
 login_manager = LoginManager(app)
 
 
 controller = UsersController()
+database = SQLTables(Connector)
+
 
 @login_manager.user_loader
 def load_user(user_id):
