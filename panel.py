@@ -96,6 +96,16 @@ class SQLTables:
         for i in ['open_connection', 'execute_sql', 'close_connectoin', 'get_tables']:
             if i not in connector:
                 raise BadConnector(f'Connector need to has function {i}')
+
+    @staticmethod
+    def check_query(query:str):
+        # return Flase if sql injection in query
+        query = query.lower()
+        for operation in ['select', 'update', 'insert', 'delete', 'drop']:
+            if operation in query:
+                return False
+        return True
+    
     def get_tables(self):
         self.connector.open_connection()
         data = self.connector.get_tables()
@@ -103,14 +113,20 @@ class SQLTables:
         if not data:
             raise BadConnector('Tables list can not be empty')
         return data
-    def get_data_from_table(self, table_name, limit):
+    
+    def get_data_from_table(self, table_name, limit=None):
         self.connector.open_connection()
-        data = self.connector.execute_sql('SELECT * FROM ? WHERE limit=?', (table_name, limit))
-        self.close_connectoin()
+        if not SQLTables.check_query(table_name):
+            return []
+        if not limit:
+            data = self.connector.execute_sql(f'SELECT * FROM {table_name}')
+        else:
+            data = self.connector.execute_sql(f'SELECT * FROM {table_name} WHERE limit=?', (limit,))
+        self.connector.close_connectoin()
         return data
 
 
 if __name__ == '__main__':
     from sqlite_db_connector import Connector
     obj = SQLTables(Connector('/home/yan/Desktop/test_database.db'))
-    print(obj.get_tables())
+    print(obj.get_data_from_table('posotions'))
