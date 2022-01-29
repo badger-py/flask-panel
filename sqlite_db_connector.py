@@ -17,7 +17,6 @@ class Connector:
         else:
             return self.cursor.fetchall()
     def close_connectoin(self):
-        self.cursor.close()
         self.connection.close()
     def get_tables(self):
         # you don't need to setup or close connection

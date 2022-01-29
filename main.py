@@ -14,7 +14,7 @@ login_manager = LoginManager(app)
 
 
 controller = UsersController()
-database = SQLTables(Connector)
+database = SQLTables(Connector(r"/home/yan/Desktop/test_database.db"))
 
 
 @login_manager.user_loader
@@ -36,7 +36,12 @@ def add_header(r):
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    return render_template('index.html', tables=database.get_tables())
+
+@app.route('/table/<name>')
+def get_data_from_table(name):
+    pass
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -59,4 +64,8 @@ def on_401(e):
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run()
+    import sys
+    if len(sys.argv) > 1:
+        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1])
+    else:
+        app.run()
