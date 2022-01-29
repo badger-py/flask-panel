@@ -113,14 +113,14 @@ class SQLTables:
             raise BadConnector('Tables list can not be empty')
         return data
     
-    def get_data_from_table(self, table_name, limit=None):
+    def get_data_from_table(self, table_name, limit=None, offset=0):
         self.connector.open_connection()
         if not SQLTables.check_query(table_name):
             return []
         if not limit:
-            data = self.connector.execute_sql(f'SELECT * FROM {table_name}')
+            data = self.connector.execute_sql(f'SELECT * FROM {table_name} OFFSET {offset}')
         else:
-            data = self.connector.execute_sql(f'SELECT * FROM {table_name} WHERE limit=?', (limit,))
+            data = self.connector.execute_sql(f'SELECT * FROM {table_name} WHERE limit=? OFFSET {offset}', (limit,))
         self.connector.close_connectoin()
         return data
 
