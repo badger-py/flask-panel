@@ -40,6 +40,7 @@ def index():
 
 @app.route('/table/<name>')
 def get_data_from_table(name):
+    # TODO: pagination
     pass
 
 
