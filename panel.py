@@ -111,8 +111,10 @@ class SQLTables:
         if not data:
             raise BadConnector('Tables list can not be empty')
         for table in data:
-            if 'id' not in table.columns:
-                raise BadConnector('All table needs to have an id column')
+            if len(table.columns) == 0:
+                raise BadConnector('Table needs to have 1 or more columns')
+            if table.columns[0] != 'id':
+                raise BadConnector('All tables needs to have an id column')
         return data
     
     def get_data_from_table(self, table_name, limit=None, offset=0):
