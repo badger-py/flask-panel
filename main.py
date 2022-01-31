@@ -24,7 +24,7 @@ database = SQLTables(
                 columns = ['id', 'name', 'price'],
                 validators = {
                     0:lambda x: True if type(x) is int or str.isnumeric else False,
-                    2:str.isnumeric
+                    2:lambda x: True if type(x) is int or str.isnumeric else False
                 }
             ),
             Table(
