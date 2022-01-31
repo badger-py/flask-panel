@@ -7,5 +7,11 @@
     <span class="toolbar__title">Main</span>
     
 </div>
-<div class="main"></div>
+<div class="main">
+    Tables:<br>
+    {% for table in tables %}
+    <a href="/table/{{table.name}}">{{table.name}}</a>
+    <br>
+    {% endfor %}
+</div>
 {% endblock %}
