@@ -100,17 +100,19 @@ class SQLTables:
     def check_query(query:str):
         # return Flase if sql injection in query
         query = query.lower()
-        for operation in ['select', 'update', 'insert', 'delete', 'drop']:
+        for operation in ['select', 'update', 'insert', 'delete', 'drop', 'or']:
             if operation in query:
                 return False
         return True
     
     def get_tables(self):
-        self.connector.open_connection()
         data = self.connector.get_tables()
-        self.connector.close_connectoin()
+
         if not data:
             raise BadConnector('Tables list can not be empty')
+        for table in data:
+            if 'id' not in table.columns:
+                raise BadConnector('All table needs to have an id column')
         return data
     
     def get_data_from_table(self, table_name, limit=None, offset=0):

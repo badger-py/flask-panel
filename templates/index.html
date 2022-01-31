@@ -9,8 +9,8 @@
 </div>
 <div class="main">
     Tables:<br>
-    {% for table_name in tables %}
-    <a href="/table/{{table_name}}">{{table_name}}</a>
+    {% for table in tables %}
+    <a href="/table/{{table.name}}">{{table.name}}</a>
     <br>
     {% endfor %}
 </div>
