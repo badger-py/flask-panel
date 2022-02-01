@@ -32,10 +32,11 @@ form {
     font-size: 20px;
     max-width: 700px;
     width: 700px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
     color: white;
-    box-shadow: 0 5px 40px #0003;
+    box-shadow: 0 5px 40px 5PX #0004;
     padding: 100px 150px;
+    background-color: #FFF1;
 }
 form > * {
     display: block;

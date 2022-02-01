@@ -39,9 +39,11 @@ database = SQLTables(
 )
 
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return controller.get_user(user_id)
+
 
 @app.after_request
 def add_header(r):
@@ -77,7 +79,7 @@ def before_request():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html', tables=database.get_tables())
+    return render_template('index.html.jinga', tables=database.get_tables())
 
 @app.route('/table/<name>', methods=['POST'])
 @login_required
@@ -187,17 +189,34 @@ def execute():
     except KeyError or TypeError:
         abort(401)
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == "GET":
-        return render_template('login.html')
+        return render_template('login.html.jinja')
     else:
-        user = controller.login_user(request.form.get('user'), request.form.get('pass'))
+        remember = False
+        user = {
+            "login":None,
+            "password":None,
+        }
+        if request.content_type == "application/json":
+            user["login"] = request.json.get("user")
+            user["password"] = request.json.get("pass")
+            remember = request.json.get("remember")
+        else:
+            user["login"] = request.form.get("user")
+            user["password"] = request.form.get("pass")
+            remember = request.form["remember"]
+        user = controller.login_user(user["login"], user['password'])
         if not user:
-            flash("You type don't correct password")
-            return redirect(url_for('login'))
-        login_user(user)
+            if request.content_type == "application/json":
+                return make_response(jsonify({"error": "Invalid username or password"}),400)
+            else:
+                flash("You type don't correct password")
+                return redirect(url_for('login'))
+        login_user(user,remember=remember)
+        if request.content_type == "application/json":
+            return make_response(jsonify({"status":"ok"}),200)
         return redirect(url_for('index'))
 
 @app.route('/logout')
@@ -207,7 +226,7 @@ def logout():
 
 @app.errorhandler(404)
 def on_404(e):
-    return render_template('404.html')
+    return render_template('404.html.jinja')
 
 @app.errorhandler(401)
 def on_401(e):

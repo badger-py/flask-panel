@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html.jinja" %}
 {% block title %}Login{% endblock %}
 {% block style %}login{% endblock %}
 {% block path %}login{% endblock %}
@@ -15,10 +15,14 @@
             <input class="input__value" placeholder="." id="pass" name="pass" type="password" minlength="8"/>
             <span class="input__placeholder">Password</span>
         </div>
+        <label>
+            <input type="checkbox" name="remember"/>
+            Remember me
+        </label>
         <input type="submit" value="Log in"/>
     </form>
 </div>
 	{% for message in get_flashed_messages() %}
-	<script>alert({{message}})</script>
+	<script>alert("{{message}}")</script>
 	{% endfor %}
 {% endblock %}
