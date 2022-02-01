@@ -59,7 +59,7 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    if request.endpoint == '' or request.endpoint == 'login':
+    if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
         return
     user = current_user
     if type(user.is_anonymous) is not bool:
@@ -182,7 +182,7 @@ def execute():
 
     try:
         database.connector.execute_sql(
-            query = json["query"]
+            query = json["query"],
             commit = json["commit"]
         )
         return "OK", 200
