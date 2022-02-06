@@ -58,23 +58,24 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    pass
-    # For testing API
-    # if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
-    #     return
-    # user = current_user
-    # if type(user.is_anonymous) is not bool:
-    #     user.is_anonymous = user.is_anonymous()
-    # if user.is_anonymous:
-    #     abort(401)
+    print(request.endpoint)
+    if request.endpoint == None:
+        abort(404)
+    if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
+        return
+    user = current_user
+    if type(user.is_anonymous) is not bool:
+        user.is_anonymous = user.is_anonymous()
+    if user.is_anonymous:
+        abort(401)
     
-    # if user.role != 4:
-    #     if request.endpoint.split('/')[0] == 'add' and user.role < 2:
-    #         abort(403)
-    #     if (request.endpoint.split('/')[0] == 'edit' or request.endpoint.split('/')[0] == 'delete') and user.role < 3:
-    #         abort(403)
-    #     if request.endpoint.split('/')[0] == 'execute' and user.role < 4:
-    #         abort(403)
+    if user.role != 4:
+        if request.endpoint.split('/')[0] == 'add' and user.role < 2:
+            abort(403)
+        if (request.endpoint.split('/')[0] == 'edit' or request.endpoint.split('/')[0] == 'delete') and user.role < 3:
+            abort(403)
+        if request.endpoint.split('/')[0] == 'execute' and user.role < 4:
+            abort(403)
 
 
 @app.route('/')
@@ -83,7 +84,7 @@ def index():
     return render_template('index.html.jinga', tables=database.get_tables())
 
 @app.route('/table/<name>', methods=['POST'])
-# @login_required
+@login_required
 def get_data_from_table(name):
     json = request.json
     print(json.get('offset'))
@@ -115,7 +116,7 @@ def edit(table_name, id):
 
     # validate JSON
     if len(json) != len(table_columns):
-        abort(400)
+        abort(400, description = f"JSON needs to consists of {len(table_columns)} parts. But it is {len(json)}")
     
     for key, validator in table.validators.items():
         try:
@@ -144,7 +145,7 @@ def delete(table_name, id):
     return 'OK', 200
 
 @app.route('/add/<table_name>', methods=['POST'])
-@login_required
+# @login_required
 def add(table_name):
     json = request.json
 
@@ -179,14 +180,18 @@ def add(table_name):
     return 'OK', 201
 
 @app.route('/execute', methods = ['POST'])
+@login_required
 def execute():
     json = request.json
 
     try:
-        database.connector.execute_sql(
+        res = database.connector.execute_sql(
             query = json["query"],
             commit = json["commit"]
         )
+        if not json["commit"]:
+            return jsonify(res)
+
         return "OK", 200
     except KeyError or TypeError:
         abort(401)
@@ -222,6 +227,7 @@ def login():
         return redirect(url_for('index'))
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
@@ -237,6 +243,6 @@ def on_401(e):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:
-        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1])
+        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1], debug=True)
     else:
-        app.run()
+        app.run(debug=True)
