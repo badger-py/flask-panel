@@ -58,7 +58,6 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    print(request.endpoint)
     if request.endpoint == None:
         abort(404)
     if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
