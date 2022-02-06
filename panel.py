@@ -121,10 +121,10 @@ class SQLTables:
         self.connector.open_connection()
         if not SQLTables.check_query(table_name):
             return []
-        if not limit:
-            data = self.connector.execute_sql(f'SELECT * FROM {table_name} OFFSET {offset}')
+        if limit != None:
+            data = self.connector.execute_sql(f'SELECT * FROM {table_name} LIMIT ? OFFSET ?', (limit, offset))
         else:
-            data = self.connector.execute_sql(f'SELECT * FROM {table_name} WHERE limit=? OFFSET {offset}', (limit,))
+            data = self.connector.execute_sql(f'SELECT * FROM {table_name} OFFSET {offset}')
         self.connector.close_connectoin()
         return data
 

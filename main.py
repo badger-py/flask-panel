@@ -58,21 +58,23 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
-        return
-    user = current_user
-    if type(user.is_anonymous) is not bool:
-        user.is_anonymous = user.is_anonymous()
-    if user.is_anonymous:
-        abort(401)
+    pass
+    # For testing API
+    # if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
+    #     return
+    # user = current_user
+    # if type(user.is_anonymous) is not bool:
+    #     user.is_anonymous = user.is_anonymous()
+    # if user.is_anonymous:
+    #     abort(401)
     
-    if user.role != 4:
-        if request.endpoint.split('/')[0] == 'add' and user.role < 2:
-            abort(403)
-        if (request.endpoint.split('/')[0] == 'edit' or request.endpoint.split('/')[0] == 'delete') and user.role < 3:
-            abort(403)
-        if request.endpoint.split('/')[0] == 'execute' and user.role < 4:
-            abort(403)
+    # if user.role != 4:
+    #     if request.endpoint.split('/')[0] == 'add' and user.role < 2:
+    #         abort(403)
+    #     if (request.endpoint.split('/')[0] == 'edit' or request.endpoint.split('/')[0] == 'delete') and user.role < 3:
+    #         abort(403)
+    #     if request.endpoint.split('/')[0] == 'execute' and user.role < 4:
+    #         abort(403)
 
 
 @app.route('/')
@@ -81,19 +83,20 @@ def index():
     return render_template('index.html.jinga', tables=database.get_tables())
 
 @app.route('/table/<name>', methods=['POST'])
-@login_required
+# @login_required
 def get_data_from_table(name):
     json = request.json
+    print(json.get('offset'))
 
-    if (not json['limit']) or (not json['offset']):
-        abort(400) # BadRequest
+    if (json.get('limit') == None) or (json.get('offset') == None):
+        abort(400, description='JSON needs to have limit and offset fieldsd') # BadRequest
 
     data = database.get_data_from_table(
-        name = name,
+        table_name = name,
         limit = json['limit'],
         offset = json['offset']
     )
-    return data # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
+    return jsonify(data) # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
 
 @app.route('/edit/<table_name>/<id>', methods=['POST'])
 @login_required
