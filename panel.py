@@ -30,7 +30,9 @@ class UsersController:
     def get_user(self, id):
         self._get_database()
         self.cursor.execute('SELECT * FROM users WHERE id=?',(int(id),))
-        return User(*self.cursor.fetchone())
+        data = self.cursor.fetchone()
+        self._create_databse()
+        return User(*data)
 
     # @use_db
     def login_user(self, login, password):

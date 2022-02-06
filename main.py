@@ -58,9 +58,9 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    if request.endpoint == None:
-        abort(404)
-    if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split('/')[0] == 'static':
+    if request.path == None:
+        abort(404, description = "Invalid path")
+    if request.path[1:] == '' or request.path[1:] == 'login' or request.path[1:].split('/')[0] == 'static':
         return
     user = current_user
     if type(user.is_anonymous) is not bool:
@@ -69,11 +69,11 @@ def before_request():
         abort(401)
     
     if user.role != 4:
-        if request.endpoint.split('/')[0] == 'add' and user.role < 2:
+        if request.path[1:].split('/')[0] == 'add' and user.role < 2:
             abort(403)
-        if (request.endpoint.split('/')[0] == 'edit' or request.endpoint.split('/')[0] == 'delete') and user.role < 3:
+        if (request.path[1:].split('/')[0] == 'edit' or request.path[1:].split('/')[0] == 'delete') and user.role < 3:
             abort(403)
-        if request.endpoint.split('/')[0] == 'execute' and user.role < 4:
+        if request.path[1:].split('/')[0] == 'execute' and user.role < 4:
             abort(403)
 
 
@@ -86,7 +86,6 @@ def index():
 @login_required
 def get_data_from_table(name):
     json = request.json
-    print(json.get('offset'))
 
     if (json.get('limit') == None) or (json.get('offset') == None):
         abort(400, description='JSON needs to have limit and offset fieldsd') # BadRequest
@@ -144,7 +143,7 @@ def delete(table_name, id):
     return 'OK', 200
 
 @app.route('/add/<table_name>', methods=['POST'])
-# @login_required
+@login_required
 def add(table_name):
     json = request.json
 
@@ -212,7 +211,7 @@ def login():
         else:
             user["login"] = request.form.get("user")
             user["password"] = request.form.get("pass")
-            remember = request.form["remember"]
+            remember = request.get("remember")
         user = controller.login_user(user["login"], user['password'])
         if not user:
             if request.content_type == "application/json":
