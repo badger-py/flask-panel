@@ -3,3 +3,4 @@ __pycache__
 modules
 test.py
 users.sqlite
+data_views/__pycache__
