@@ -8,7 +8,7 @@ window.onload = () => {
             if(xhr.response && xhr.response.status == "ok"){
 		location = "/"
 	    } else {
-		alert(xhr.response.error)
+		alert(xhr.responseText)
 	    }
         };
         xhr.onerror = () => {

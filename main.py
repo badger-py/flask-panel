@@ -1,5 +1,5 @@
 from unittest.mock import seal
-from flask import Flask, render_template ,request, redirect, url_for, flash, abort
+from flask import Flask, render_template ,request, redirect, url_for, flash, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from panel import *
 from sqlite_db_connector import Connector, Table
@@ -59,7 +59,9 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    if request.endpoint == '' or request.endpoint == 'login':
+    if request.endpoint == None:
+        return
+    if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split("/")[0] == "static":
         return
     user = current_user
     if type(user.is_anonymous) is not bool:
@@ -79,7 +81,7 @@ def before_request():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html.jinga', tables=database.get_tables())
+    return render_template('index.html.jinja', tables=database.get_tables())
 
 @app.route('/table/<name>', methods=['POST'])
 @login_required
@@ -182,7 +184,7 @@ def execute():
 
     try:
         database.connector.execute_sql(
-            query = json["query"]
+            query = json["query"],
             commit = json["commit"]
         )
         return "OK", 200
