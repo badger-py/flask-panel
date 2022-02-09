@@ -1,9 +1,6 @@
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class BadConnector(Exception):
-    pass
-
 
 class UsersController:
     def __init__(self):
@@ -30,7 +27,9 @@ class UsersController:
     def get_user(self, id):
         self._get_database()
         self.cursor.execute('SELECT * FROM users WHERE id=?',(int(id),))
-        return User(*self.cursor.fetchone())
+        data = self.cursor.fetchone()
+        self._create_databse()
+        return User(*data)
 
     # @use_db
     def login_user(self, login, password):
@@ -69,6 +68,7 @@ class UsersController:
         )""")
         self.connection.commit()
         self._close_database()
+
 
 class User:
     def __init__(self, id, role, username, password):

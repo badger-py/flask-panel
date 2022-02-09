@@ -1,7 +1,8 @@
 from unittest.mock import seal
 from flask import Flask, render_template ,request, redirect, url_for, flash, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from panel import *
+from users_controller import UsersController, User
+from data_views.sql import SQLTables
 from sqlite_db_connector import Connector, Table
 
 
@@ -23,8 +24,8 @@ database = SQLTables(
                 name = "positions",
                 columns = ['id', 'name', 'price'],
                 validators = {
-                    0:lambda x: True if type(x) is int or str.isnumeric(x) else False,
-                    2:lambda x: True if type(x) is int or str.isnumeric(x) else False
+                    0:lambda x: type(x) is int or str.isnumeric(x),
+                    2:lambda x: type(x) is int or str.isnumeric(x)
                 }
             ),
             Table(
@@ -70,33 +71,36 @@ def before_request():
         abort(401)
     
     if user.role != 4:
-        if request.endpoint.split('/')[0] == 'add' and user.role < 2:
+        if request.path[1:].split('/')[0] == 'add' and user.role < 2:
             abort(403)
-        if (request.endpoint.split('/')[0] == 'edit' or request.endpoint.split('/')[0] == 'delete') and user.role < 3:
+        if (request.path[1:].split('/')[0] == 'edit' or request.path[1:].split('/')[0] == 'delete') and user.role < 3:
             abort(403)
-        if request.endpoint.split('/')[0] == 'execute' and user.role < 4:
+        if request.path[1:].split('/')[0] == 'execute' and user.role < 4:
             abort(403)
 
 
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html.jinja', tables=database.get_tables())
+    return render_template(
+        'index.html.jinga',
+        tables=database.get_tables()
+    )
 
 @app.route('/table/<name>', methods=['POST'])
 @login_required
 def get_data_from_table(name):
     json = request.json
 
-    if (not json['limit']) or (not json['offset']):
-        abort(400) # BadRequest
+    if (json.get('limit') == None) or (json.get('offset') == None):
+        abort(400, description='JSON needs to have limit and offset fieldsd') # BadRequest
 
     data = database.get_data_from_table(
-        name = name,
+        table_name = name,
         limit = json['limit'],
         offset = json['offset']
     )
-    return data # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
+    return jsonify(data) # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
 
 @app.route('/edit/<table_name>/<id>', methods=['POST'])
 @login_required
@@ -115,7 +119,7 @@ def edit(table_name, id):
 
     # validate JSON
     if len(json) != len(table_columns):
-        abort(400)
+        abort(400, description = f"JSON needs to consists of {len(table_columns)} parts. But it is {len(json)}")
     
     for key, validator in table.validators.items():
         try:
@@ -179,6 +183,7 @@ def add(table_name):
     return 'OK', 201
 
 @app.route('/execute', methods = ['POST'])
+@login_required
 def execute():
     json = request.json
 
@@ -187,6 +192,9 @@ def execute():
             query = json["query"],
             commit = json["commit"]
         )
+        if not json["commit"]:
+            return jsonify(res)
+
         return "OK", 200
     except KeyError or TypeError:
         abort(401)
@@ -208,7 +216,7 @@ def login():
         else:
             user["login"] = request.form.get("user")
             user["password"] = request.form.get("pass")
-            remember = request.form["remember"]
+            remember = request.get("remember")
         user = controller.login_user(user["login"], user['password'])
         if not user:
             if request.content_type == "application/json":
@@ -222,6 +230,7 @@ def login():
         return redirect(url_for('index'))
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
@@ -234,9 +243,13 @@ def on_404(e):
 def on_401(e):
     return redirect(url_for('login'))
 
+@app.errorhandler(400)
+def on_400(e):
+    return {"error":e.description}, 400
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:
-        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1])
+        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1], debug=True)
     else:
-        app.run()
+        app.run(debug=True)

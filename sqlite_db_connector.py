@@ -27,8 +27,9 @@ class Connector:
         if commit:
             self.connection.commit()
         else:
+            data = self.cursor.fetchall()
             self.close_connectoin()
-            return self.cursor.fetchall()
+            return data
         self.close_connectoin()
 
     def get_tables(self):
