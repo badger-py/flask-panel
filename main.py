@@ -5,7 +5,6 @@ from data_views.sql import SQLTables
 from sqlite_db_connector import Connector, Table
 
 
-
 app = Flask(__name__)
 app.secret_key = 'dev'
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -24,8 +23,8 @@ database = SQLTables(
                 name = "positions",
                 columns = ['id', 'name', 'price'],
                 validators = {
-                    0:lambda x: True if type(x) is int or str.isnumeric(x) else False,
-                    2:lambda x: True if type(x) is int or str.isnumeric(x) else False
+                    0:lambda x: type(x) is int or str.isnumeric(x),
+                    2:lambda x: type(x) is int or str.isnumeric(x)
                 }
             ),
             Table(
@@ -82,22 +81,25 @@ def before_request():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html.jinja', tables=database.get_tables())
+    return render_template(
+        'index.html.jinga',
+        tables=database.get_tables()
+    )
 
 @app.route('/table/<name>', methods=['POST'])
 @login_required
 def get_data_from_table(name):
     json = request.json
 
-    if (not json['limit']) or (not json['offset']):
-        abort(400) # BadRequest
+    if (json.get('limit') == None) or (json.get('offset') == None):
+        abort(400, description='JSON needs to have limit and offset fieldsd') # BadRequest
 
     data = database.get_data_from_table(
-        name = name,
+        table_name = name,
         limit = json['limit'],
         offset = json['offset']
     )
-    return data # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
+    return jsonify(data) # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
 
 @app.route('/edit/<table_name>/<id>', methods=['POST'])
 @login_required
@@ -116,7 +118,7 @@ def edit(table_name, id):
 
     # validate JSON
     if len(json) != len(table_columns):
-        abort(400)
+        abort(400, description = f"JSON needs to consists of {len(table_columns)} parts. But it is {len(json)}")
     
     for key, validator in table.validators.items():
         try:
@@ -180,14 +182,18 @@ def add(table_name):
     return 'OK', 201
 
 @app.route('/execute', methods = ['POST'])
+@login_required
 def execute():
     json = request.json
 
     try:
-        database.connector.execute_sql(
+        res = database.connector.execute_sql(
             query = json["query"],
             commit = json["commit"]
         )
+        if not json["commit"]:
+            return jsonify(res)
+
         return "OK", 200
     except KeyError or TypeError:
         abort(401)
@@ -197,11 +203,7 @@ def login():
     if request.method == "GET":
         return render_template('login.html.jinja')
     else:
-        remember = False
-        user = {
-            "login":None,
-            "password":None,
-        }
+        user = {}
         if request.content_type == "application/json":
             user["login"] = request.json.get("user")
             user["password"] = request.json.get("pass")
@@ -209,20 +211,28 @@ def login():
         else:
             user["login"] = request.form.get("user")
             user["password"] = request.form.get("pass")
-            remember = request.form["remember"]
-        user = controller.login_user(user["login"], user['password'])
+            remember = request.get("remember")
+        
+        user = controller.login_user(
+            user["login"],
+            user['password']
+        )
+
         if not user:
             if request.content_type == "application/json":
                 return make_response(jsonify({"error": "Invalid username or password"}),400)
             else:
                 flash("You type don't correct password")
                 return redirect(url_for('login'))
-        login_user(user,remember=remember)
+        
+        login_user(user, remember = remember)
+        
         if request.content_type == "application/json":
             return make_response(jsonify({"status":"ok"}),200)
         return redirect(url_for('index'))
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
@@ -235,9 +245,13 @@ def on_404(e):
 def on_401(e):
     return redirect(url_for('login'))
 
+@app.errorhandler(400)
+def on_400(e):
+    return {"error":e.description}, 400
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:
-        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1])
+        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1], debug=True)
     else:
-        app.run()
+        app.run(debug=True)
