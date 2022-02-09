@@ -1,6 +1,7 @@
 from flask import Flask, render_template ,request, redirect, url_for, flash, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from panel import *
+from users_controller import UsersController, User
+from data_views.sql import SQLTables
 from sqlite_db_connector import Connector, Table
 
 
