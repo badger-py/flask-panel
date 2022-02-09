@@ -1,8 +1,7 @@
 from unittest.mock import seal
 from flask import Flask, render_template ,request, redirect, url_for, flash, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from users_controller import UsersController, User
-from data_views.sql import SQLTables
+from panel import *
 from sqlite_db_connector import Connector, Table
 
 
@@ -24,8 +23,8 @@ database = SQLTables(
                 name = "positions",
                 columns = ['id', 'name', 'price'],
                 validators = {
-                    0:lambda x: type(x) is int or str.isnumeric(x),
-                    2:lambda x: type(x) is int or str.isnumeric(x)
+                    0:lambda x: True if type(x) is int or str.isnumeric(x) else False,
+                    2:lambda x: True if type(x) is int or str.isnumeric(x) else False
                 }
             ),
             Table(
@@ -60,9 +59,9 @@ def add_header(r):
 
 @app.before_request
 def before_request():
-    if request.endpoint == None:
-        return
-    if request.endpoint == '' or request.endpoint == 'login' or request.endpoint.split("/")[0] == "static":
+    if request.path == None:
+        abort(404, description = "Invalid path")
+    if request.path[1:] == '' or request.path[1:] == 'login' or request.path[1:].split('/')[0] == 'static':
         return
     user = current_user
     if type(user.is_anonymous) is not bool:
@@ -82,25 +81,22 @@ def before_request():
 @app.route('/')
 @login_required
 def index():
-    return render_template(
-        'index.html.jinga',
-        tables=database.get_tables()
-    )
+    return render_template('index.html.jinja', tables=database.get_tables())
 
 @app.route('/table/<name>', methods=['POST'])
 @login_required
 def get_data_from_table(name):
     json = request.json
 
-    if (json.get('limit') == None) or (json.get('offset') == None):
-        abort(400, description='JSON needs to have limit and offset fieldsd') # BadRequest
+    if (not json['limit']) or (not json['offset']):
+        abort(400) # BadRequest
 
     data = database.get_data_from_table(
-        table_name = name,
+        name = name,
         limit = json['limit'],
         offset = json['offset']
     )
-    return jsonify(data) # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
+    return data # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
 
 @app.route('/edit/<table_name>/<id>', methods=['POST'])
 @login_required
@@ -119,7 +115,7 @@ def edit(table_name, id):
 
     # validate JSON
     if len(json) != len(table_columns):
-        abort(400, description = f"JSON needs to consists of {len(table_columns)} parts. But it is {len(json)}")
+        abort(400)
     
     for key, validator in table.validators.items():
         try:
@@ -183,7 +179,6 @@ def add(table_name):
     return 'OK', 201
 
 @app.route('/execute', methods = ['POST'])
-@login_required
 def execute():
     json = request.json
 
@@ -192,9 +187,6 @@ def execute():
             query = json["query"],
             commit = json["commit"]
         )
-        if not json["commit"]:
-            return jsonify(res)
-
         return "OK", 200
     except KeyError or TypeError:
         abort(401)
@@ -216,7 +208,7 @@ def login():
         else:
             user["login"] = request.form.get("user")
             user["password"] = request.form.get("pass")
-            remember = request.get("remember")
+            remember = request.form["remember"]
         user = controller.login_user(user["login"], user['password'])
         if not user:
             if request.content_type == "application/json":
@@ -230,7 +222,6 @@ def login():
         return redirect(url_for('index'))
 
 @app.route('/logout')
-@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
@@ -243,13 +234,9 @@ def on_404(e):
 def on_401(e):
     return redirect(url_for('login'))
 
-@app.errorhandler(400)
-def on_400(e):
-    return {"error":e.description}, 400
-
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:
-        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1], debug=True)
+        app.run(host=sys.argv[1].split(":")[0], port=sys.argv[1].split(":")[1])
     else:
-        app.run(debug=True)
+        app.run()
