@@ -22,8 +22,8 @@ database = SQLTables(
                 name = "positions",
                 columns = ['id', 'name', 'price'],
                 validators = {
-                    0:lambda x: True if type(x) is int or str.isnumeric(x) else False,
-                    2:lambda x: True if type(x) is int or str.isnumeric(x) else False
+                    0:lambda x: type(x) is int or str.isnumeric(x),
+                    2:lambda x: type(x) is int or str.isnumeric(x)
                 }
             ),
             Table(
@@ -80,7 +80,10 @@ def before_request():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html.jinga', tables=database.get_tables())
+    return render_template(
+        'index.html.jinga',
+        tables=database.get_tables()
+    )
 
 @app.route('/table/<name>', methods=['POST'])
 @login_required
@@ -237,6 +240,10 @@ def on_404(e):
 @app.errorhandler(401)
 def on_401(e):
     return redirect(url_for('login'))
+
+@app.errorhandler(400)
+def on_400(e):
+    return {"error":e.description}, 400
 
 if __name__ == '__main__':
     import sys
