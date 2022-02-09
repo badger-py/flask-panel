@@ -203,11 +203,7 @@ def login():
     if request.method == "GET":
         return render_template('login.html.jinja')
     else:
-        remember = False
-        user = {
-            "login":None,
-            "password":None,
-        }
+        user = {}
         if request.content_type == "application/json":
             user["login"] = request.json.get("user")
             user["password"] = request.json.get("pass")
@@ -216,14 +212,21 @@ def login():
             user["login"] = request.form.get("user")
             user["password"] = request.form.get("pass")
             remember = request.get("remember")
-        user = controller.login_user(user["login"], user['password'])
+        
+        user = controller.login_user(
+            user["login"],
+            user['password']
+        )
+
         if not user:
             if request.content_type == "application/json":
                 return make_response(jsonify({"error": "Invalid username or password"}),400)
             else:
                 flash("You type don't correct password")
                 return redirect(url_for('login'))
-        login_user(user,remember=remember)
+        
+        login_user(user, remember = remember)
+        
         if request.content_type == "application/json":
             return make_response(jsonify({"status":"ok"}),200)
         return redirect(url_for('index'))

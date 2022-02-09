@@ -6,7 +6,7 @@ class BadConnector(Exception):
 
 
 class SQLTables:
-    def __init__(self, connector):
+    def __init__(self, connector) -> None:
         self.connector = connector
         connector = dir(self.connector)
         for i in ['open_connection', 'execute_sql', 'close_connectoin', 'get_tables']:
@@ -14,7 +14,7 @@ class SQLTables:
                 raise BadConnector(f'Connector need to has function {i}')
 
     @staticmethod
-    def check_query(query:str):
+    def check_query(query:str) -> bool:
         # return Flase if sql injection in query
         query = query.lower()
         for operation in ['select', 'update', 'insert', 'delete', 'drop', 'or']:
@@ -22,7 +22,7 @@ class SQLTables:
                 return False
         return True
     
-    def get_tables(self):
+    def get_tables(self) -> list:
         data = self.connector.get_tables()
 
         if not data:
@@ -34,7 +34,7 @@ class SQLTables:
                 raise BadConnector('All tables needs to have an id column')
         return data
     
-    def get_data_from_table(self, table_name, limit=None, offset=0):
+    def get_data_from_table(self, table_name: str, limit: int=None, offset: int=0) -> list:
         self.connector.open_connection()
         if not SQLTables.check_query(table_name):
             return []
