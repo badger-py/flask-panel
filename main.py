@@ -219,6 +219,7 @@ def login():
         )
 
         if not user:
+            # if json in get json out
             if request.content_type == "application/json":
                 return make_response(jsonify({"error": "Invalid username or password"}),400)
             else:
@@ -226,7 +227,8 @@ def login():
                 return redirect(url_for('login'))
         
         login_user(user, remember = remember)
-        
+
+        # if json in get json out
         if request.content_type == "application/json":
             return make_response(jsonify({"status":"ok"}),200)
         return redirect(url_for('index'))
