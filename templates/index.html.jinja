@@ -7,9 +7,9 @@
     <span class="toolbar__title">Main</span>
     
 </div>
-<div id="tables">
+<panel-pager id="tables">
     {% for table in tables %}
-    <!--{{table.name}}-->
+        <div name="{{ table.name }}"></div>
     {% endfor %}
-</div>
+</panel-pager>
 {% endblock %}
