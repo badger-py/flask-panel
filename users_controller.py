@@ -1,9 +1,6 @@
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class BadConnector(Exception):
-    pass
-
 
 class UsersController:
     def __init__(self):
@@ -15,7 +12,6 @@ class UsersController:
         self.cursor = self.connection.cursor()
     
     def _close_database(self):
-        self.cursor.close()
         self.connection.close()
     # @staticmethod
     # def use_db(func, **args):
@@ -31,12 +27,14 @@ class UsersController:
     def get_user(self, id):
         self._get_database()
         self.cursor.execute('SELECT * FROM users WHERE id=?',(int(id),))
-        return User(*self.cursor.fetchone())
+        data = self.cursor.fetchone()
+        self._create_databse()
+        return User(*data)
 
     # @use_db
     def login_user(self, login, password):
         self._get_database()
-        self.cursor.execute('SELECT * FROM users WHERE username="%s"' % login)
+        self.cursor.execute('SELECT * FROM users WHERE username=?', (login,))
         user = self.cursor.fetchone()
         if not user:
             self._close_database()
@@ -71,6 +69,7 @@ class UsersController:
         self.connection.commit()
         self._close_database()
 
+
 class User:
     def __init__(self, id, role, username, password):
         self.id = id
@@ -88,12 +87,3 @@ class User:
         return str(self.id)
     def get_user(self):
         return str(self.id)
-
-class SQLTables:
-    def __init__(self, connector):
-        self.connector = connector()
-        connector = dir(self.connector)
-        for i in ['open_connection', 'execute_sql', 'close_connectoin', 'get_tables']:
-            if i not in connector:
-                raise BadConnector(f'Connector need to has function {i}')
-
