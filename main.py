@@ -82,7 +82,7 @@ def before_request():
 @login_required
 def index():
     return render_template(
-        'index.html.jinga',
+        'index.html.jinja',
         tables=database.get_tables()
     )
 
