@@ -12,6 +12,7 @@ class UsersController:
         self.cursor = self.connection.cursor()
     
     def _close_database(self):
+        self.cursor.close()
         self.connection.close()
     # @staticmethod
     # def use_db(func, **args):
