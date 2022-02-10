@@ -4,8 +4,9 @@ window.onload = e => {
         e.preventDefault();
         let xhr = new XMLHttpRequest();
         xhr.onload = ()=>{
-            alert(`${xhr.status} ${xhr.statusText}`);
-            console.log(xhr)
+            if (xhr.status == 200) {
+                location = "/"
+            }
         };
         xhr.onerror = () => {
             

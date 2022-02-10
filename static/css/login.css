@@ -32,11 +32,11 @@ form {
     font-size: 20px;
     max-width: 700px;
     width: 700px;
-    backdrop-filter: blur(15px);
+    /* backdrop-filter: blur(15px); */
     color: white;
     box-shadow: 0 5px 40px 5PX #0004;
     padding: 100px 150px;
-    background-color: #FFF1;
+    background-color: rgba(255, 255, 255, 0.103);
 }
 form > * {
     display: block;
@@ -128,11 +128,11 @@ form > header {
   transition: all 0.2s;
 }
 .input .input__value:focus + .input__placeholder {
-    transform: translate(0,0);
+    transform: translate(0,-5px);
     font-size: 13px;
 }
 
 .input .input__value:not(:placeholder-shown) + .input__placeholder {
-    transform: translate(0,0);
+    transform: translate(0,-5px);
     font-size: 13px;
 }
