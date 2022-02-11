@@ -1,5 +1,6 @@
 from flask import Flask, render_template ,request, redirect, url_for, flash, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from pydantic import ValidationError
 from users_controller import UsersController, User
 from data_views.sql import SQLTables
 from sqlite_db_connector import Connector, Table
@@ -86,56 +87,68 @@ def index():
         tables=database.get_tables()
     )
 
-@app.route('/table/<name>', methods=['POST'])
+@app.route('/table/<string:table_name>', methods=['POST'])
 @login_required
-def get_data_from_table(name):
+def get_data_from_table(table_name):
     json = request.json
 
+    # validate JSON on fileds limit and offset
     if (json.get('limit') == None) or (json.get('offset') == None):
-        abort(400, description='JSON needs to have limit and offset fieldsd') # BadRequest
+        abort(400, description='JSON needs to have limit and offset fields') # BadRequest
+
+    table = database.get_tables()
+    table = [i for i in table if i.get_name() == table_name]
+
+    if not table:
+        abort(404, description = 'Table not found')
+    table = table[0]
 
     data = database.get_data_from_table(
-        table_name = name,
+        table_name = table_name,
         limit = json['limit'],
         offset = json['offset']
     )
-    return jsonify(data) # is a list like [(1, 'Yan', 'admin'), (2, 'MrNektom', 'admin')]
 
-@app.route('/edit/<table_name>/<id>', methods=['POST'])
+
+    table_columns = list(dict(table.__dict__)['__annotations__'].keys())
+    out_data = []
+    for string in data:
+        # append dict to out_data
+        out_data.append(dict(zip(table_columns, string)))
+
+    return jsonify(out_data)
+
+
+@app.route('/edit/<string:table_name>/<int:id>', methods=['POST'])
 @login_required
 def edit(table_name, id):
     json = request.json
 
     table = database.get_tables()
-    table = [i for i in table if i.name == table_name]
+    table = [i for i in table if i.get_name() == table_name]
 
     if not table:
         abort(404, description = 'Table not found')
-    
     table = table[0]
-    table_columns = table.columns
+    # table_columns = list(dict(table.__dict__)['__annotations__'].keys())
 
-
-    # validate JSON
-    if len(json) != len(table_columns):
-        abort(400, description = f"JSON needs to consists of {len(table_columns)} parts. But it is {len(json)}")
-    
-    for key, validator in table.validators.items():
-        try:
-            if not validator(json[key]):
-                abort(400, description = "Validation not comleted")
-        except KeyError:
-            abort(400)
-                
+    try:
+        # validate data
+        data = table.parse_obj(json)
+    except ValidationError as v_error:
+        error = v_error.errors()[0]
+        abort(400, description = f"Error in {error['loc'][0]}: {error['msg']}")
+        
+    out_json = data.dict(exclude={'id'})
 
     database.connector.execute_sql(
-        query = f'UPDATE {table_name} SET {", ".join([f"{column}=?" for column in table_columns])} WHERE id=?',
-        params = json + [id],
+        query = f'UPDATE {table_name} SET {", ".join([f"{column}=?" for column in out_json.keys()])} WHERE id=?',
+        params = list(out_json.values()) + [id],
         commit = True
     )
     return 'OK', 200
 
-@app.route('/delete/<table_name>/<id>', methods=['POST'])
+@app.route('/delete/<string:table_name>/<int:id>', methods=['DELETE'])
 @login_required
 def delete(table_name, id):
     database.check_query(table_name)
@@ -146,37 +159,36 @@ def delete(table_name, id):
     )
     return 'OK', 200
 
-@app.route('/add/<table_name>', methods=['POST'])
+@app.route('/add/<string:table_name>', methods=['POST'])
 @login_required
 def add(table_name):
+    # check table_name
+    database.check_query(table_name)
+
     json = request.json
 
     table = database.get_tables()
-    table = [i for i in table if i.name == table_name]
+    table = [i for i in table if i.get_name() == table_name]
 
     if not table:
         abort(404, description = 'Table not found')
     
     table = table[0]
-    table_columns = table.columns
 
+    try:
+        # validate data
+        data = table.parse_obj(json)
+    except ValidationError as v_error:
+        error = v_error.errors()[0]
+        abort(400, description = f"Error in {error['loc'][0]}: {error['msg']}")
+    
+    out_json = data.dict(exclude={'id'})
 
-    # validate JSON
-    if len(json) != len(table_columns) - 1:
-        abort(400)
-    
-    for key, validator in list(table.validators.items())[1:]:
-        try:
-            key -= 1
-            if not validator(json[key]):
-                abort(400, description = "Validation not comleted")
-        except IndexError:
-            abort(400, description = 'Index Error')
-    
+    q = f'INSERT INTO {table_name}({", ".join([str(column) for column in out_json.keys()])}) VALUES({",".join(list("?" * len(out_json.keys())))})'
 
     database.connector.execute_sql(
-        query = f'INSERT INTO {table_name}({", ".join([str(column) for column in table_columns[1:]])}) VALUES({",".join(list("?" * (len(table_columns) - 1)))})',
-        params = json,
+        query = q,
+        params = list(out_json.values()),
         commit = True
     )
     return 'OK', 201

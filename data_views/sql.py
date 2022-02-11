@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+from models import models_list
 
 
 
@@ -9,7 +12,7 @@ class SQLTables:
     def __init__(self, connector) -> None:
         self.connector = connector
         connector = dir(self.connector)
-        for i in ['open_connection', 'execute_sql', 'close_connectoin', 'get_tables']:
+        for i in ['open_connection', 'execute_sql', 'close_connectoin']:
             if i not in connector:
                 raise BadConnector(f'Connector need to has function {i}')
 
@@ -23,16 +26,16 @@ class SQLTables:
         return True
     
     def get_tables(self) -> list:
-        data = self.connector.get_tables()
+        if not models_list:
+            raise BadConnector('Models list can not be empty')
 
-        if not data:
-            raise BadConnector('Tables list can not be empty')
-        for table in data:
-            if len(table.columns) == 0:
+        for model in models_list:
+            columns = list(dict(model.__dict__)['__annotations__'].keys())
+            if len(columns) == 0:
                 raise BadConnector('Table needs to have 1 or more columns')
-            if table.columns[0] != 'id':
+            if columns[0] != 'id':
                 raise BadConnector('All tables needs to have an id column')
-        return data
+        return models_list
     
     def get_data_from_table(self, table_name: str, limit: int=None, offset: int=0) -> list:
         self.connector.open_connection()
