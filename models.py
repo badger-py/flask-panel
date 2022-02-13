@@ -23,8 +23,8 @@ if __name__ == "__main__":
     print(f"Columns = {columns}")
 
     data_to_validate = {
-        "id":1,
-        "name":"Milk",
+        "id": 1,
+        "name": "Milk",
         "price": "25"
     }
     try:
