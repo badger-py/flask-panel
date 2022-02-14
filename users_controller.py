@@ -79,11 +79,11 @@ class UsersController:
         self.cursor.execute('SELECT * FROM users WHERE id=?', (int(id),))
         data = self.cursor.fetchall()
         if not data:
-            return data
-        return User(*data)
+            return None
+        return User(*data[0])
 
     @use_db
-    def login_user(self, login: str, password: str):
+    def login_user(self, login: str, password: str) -> Optional[User]:
         self.cursor.execute('SELECT * FROM users WHERE username=?', (login,))
         user = self.cursor.fetchone()
         if not user:
@@ -93,13 +93,13 @@ class UsersController:
         return User(*user)
 
     @use_db
-    def create_user(self, username: str, password: str):
+    def create_user(self, username: str, password: str) -> None:
         self.cursor.execute('INSERT INTO users(username, password_hash) VALUES(?, ?)',
                             (username, generate_password_hash(password)))
         self.connection.commit()
 
     @use_db
-    def _create_databse(self):
+    def _create_databse(self) -> None:
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS users (
             id            INTEGER PRIMARY KEY
                                 UNIQUE

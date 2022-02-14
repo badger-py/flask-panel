@@ -1,0 +1,11 @@
+Backend:
+	try/except around DB querys
+	basic decorator @handle_errors
+Frontend:
+	tabs
+	tables
+	loading data while scrolling
+	CRUD operations
+
+IDEAS:
+	extensions support
